@@ -301,3 +301,50 @@ pipeline {
         }
     }
 }
+---------------------------------------------------------------------------------------------------------
+
+Jenkins url http://13.203.221.117:8080/
+
+
+pipeline {
+    agent any
+    
+    tools {
+        maven 'maven'  
+    }
+
+    stages {
+        stage('git clone') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Aquamankar/dockerdemo.git'
+            }
+        }
+        stage('mvn') {
+            steps {
+                sh 'mvn clean test package'
+            }
+        }
+        stage('build image') {
+            steps {
+                sh 'docker build -t akankshamankar/testpsa .'
+            }
+        }
+        stage('deployment') {
+            steps {
+                script {
+                    sh 'docker stop psaz || true'
+                    sh 'docker rm psaz || true'
+                    sh 'docker run -d -p 9090:8080 --name psaz akankshamankar/testpsa'
+                }
+            }
+        }
+    }
+    post {
+        success {
+            echo '✅ Deployment successful!'
+        }
+        failure {
+            echo '❌ Deployment failed.'
+        }
+    }
+}
